@@ -114,11 +114,38 @@ class PDFThumbService extends Component
         return $this->storage_path() . $this->asset->filename;
       }
       private function cache_key() {
+        // Handle size field which might be a collection
+        $sizeValue = $this->asset->size;
+        if (is_array($sizeValue) || is_object($sizeValue)) {
+          $sizeValue = json_encode($sizeValue);
+        }
+        
+        // Safely get asset ID
+        $assetId = isset($this->asset->id) ? (string)$this->asset->id : '0';
+        
+        // Safely get date modified
+        $dateModified = '';
+        if (isset($this->asset->dateModified) && method_exists($this->asset->dateModified, 'format')) {
+          $dateModified = $this->asset->dateModified->format('Y-m-d H:i:s');
+        }
+        
         $parts = array(
-          $this->asset->size, $this->asset->id, $this->asset->dateModified->format('Y-m-d H:i:s'),
-          $this->dimensions(), $this->filetype, $this->force_canvas_size
+          (string)$sizeValue, 
+          $assetId, 
+          $dateModified,
+          $this->dimensions(), 
+          $this->filetype, 
+          $this->force_canvas_size ? '1' : '0'
         );
-        return md5(join($parts,'-'));
+        
+        // Ensure all parts are strings and filter out any null/empty values
+        $parts = array_map('strval', $parts);
+        $parts = array_filter($parts, function($value) {
+            return $value !== '' && $value !== null;
+        });
+        
+        // Use implode instead of join for better compatibility
+        return md5(implode('-', $parts));
       }
       private function slashify($string) {
         $string = trim($string, '/');
