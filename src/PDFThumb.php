@@ -19,7 +19,7 @@ use craft\base\Plugin;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
 use craft\web\twig\variables\CraftVariable;
-use yii\base\Model;
+use craft\base\Model;
 
 use yii\base\Event;
 
